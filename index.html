@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>보건실 재실 현황 · Sick Bay Status · GLPS 44</title>
+<style>
+  :root{--navy:#1F3864;--blue:#2E75B6;--ink:#1f2733;--muted:#6b7480;--line:#e3e7ee;--bg:#f4f6fa;--card:#fff;
+    --red:#a32d2d;--redbg:#fcecec;--green:#2f7d31;--greenbg:#e9f6ea;--dasan:#2E75B6;--deokgo:#8a5a1b}
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:'Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',-apple-system,'Segoe UI',sans-serif;line-height:1.4;word-break:keep-all}
+  .wrap{max-width:1400px;margin:0 auto;padding:0 20px 60px}
+  header{position:sticky;top:0;z-index:5;background:var(--navy);color:#fff;border-radius:0 0 18px 18px;padding:18px 26px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .logo{width:56px;height:56px;border-radius:14px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:30px}
+  header h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.3px}
+  header .sub{font-size:14px;opacity:.85;margin-top:3px;letter-spacing:.2px}
+  .hmeta{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .clock{font-size:15px;background:rgba(255,255,255,.14);padding:8px 14px;border-radius:11px;font-weight:600;white-space:nowrap}
+  .hbtn{font-size:14px;background:rgba(255,255,255,.16);color:#fff;padding:9px 14px;border-radius:11px;text-decoration:none;border:0;cursor:pointer;font-weight:600;white-space:nowrap}
+  .hbtn:hover{background:rgba(255,255,255,.26)}
+  .hbtn.solid{background:#fff;color:var(--navy)}
+  /* hero */
+  .hero{display:flex;align-items:stretch;gap:16px;margin:22px 0 8px;flex-wrap:wrap}
+  .stat{flex:1;min-width:200px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 22px;display:flex;flex-direction:column;justify-content:center}
+  .stat .l{font-size:15px;color:var(--muted);font-weight:700}
+  .stat .n{font-size:52px;font-weight:800;line-height:1.05;margin-top:2px}
+  .stat.now{background:var(--redbg);border-color:#f2cccc} .stat.now .n{color:var(--red)}
+  .stat.now .l{color:var(--red)}
+  .stat .en{font-size:13px;color:var(--muted);margin-top:2px}
+  .stat.dasan .n{color:var(--dasan)} .stat.deokgo .n{color:var(--deokgo)}
+  /* sections */
+  h2.sec{font-size:20px;color:var(--navy);font-weight:800;margin:30px 0 14px;display:flex;align-items:center;gap:10px}
+  h2.sec .en{font-size:14px;font-weight:500;color:var(--muted)}
+  h2.sec .c{margin-left:auto;font-size:15px;color:var(--muted);font-weight:700}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+  .grid.soon{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+  /* card */
+  .card{background:var(--card);border:1px solid var(--line);border-left:7px solid var(--muted);border-radius:14px;padding:16px 18px}
+  .card.dasan{border-left-color:var(--dasan)} .card.deokgo{border-left-color:var(--deokgo)}
+  .c-top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .c-name{font-size:30px;font-weight:800;letter-spacing:-.5px}
+  .c-cls{font-size:17px;font-weight:800;color:var(--blue);background:#eaf2fb;border-radius:9px;padding:2px 11px}
+  .c-loc{margin-left:auto;font-size:16px;font-weight:800;padding:4px 13px;border-radius:10px;white-space:nowrap}
+  .c-loc.dasan{background:#e7f0fb;color:var(--dasan)} .c-loc.deokgo{background:#f6ecdd;color:var(--deokgo)}
+  .c-en{font-size:15px;color:var(--muted);margin-top:5px}
+  .c-time{margin-top:10px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .c-time .ko{font-size:19px;font-weight:800;color:var(--red)}
+  .c-time .en{font-size:14px;color:var(--muted)}
+  .c-foot{display:flex;align-items:center;margin-top:12px}
+  .c-out{margin-left:auto;font-size:14px;font-weight:700;border:1.5px solid #e0b3b3;background:#fff;color:var(--red);border-radius:10px;padding:7px 16px;cursor:pointer}
+  .c-out:hover{background:var(--redbg)}
+  .card.soon{border-left-width:5px;padding:13px 15px;opacity:.96}
+  .card.soon .c-name{font-size:23px} .card.soon .c-cls{font-size:14px}
+  .card.soon .c-date{font-size:13px;font-weight:800;color:var(--navy);background:#eef1f7;border-radius:8px;padding:2px 9px}
+  .empty{background:var(--card);border:1px dashed #cdd4df;border-radius:16px;padding:46px 20px;text-align:center;color:var(--muted)}
+  .empty .big{font-size:26px;font-weight:800;color:var(--ink)}
+  .empty .en{font-size:15px;margin-top:6px}
+  .err{background:var(--redbg);color:var(--red);border-radius:12px;padding:14px 18px;font-size:14px;margin-top:14px}
+  footer{margin-top:34px;color:var(--muted);font-size:13px;text-align:center}
+  /* modal */
+  .hlmodal{position:fixed;inset:0;background:rgba(20,28,45,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px}
+  .hlbox{background:#fff;border-radius:16px;max-width:380px;width:100%;padding:22px 22px 16px;box-shadow:0 16px 50px rgba(0,0,0,.28)}
+  .hlq{font-size:17px;color:var(--ink);line-height:1.5}
+  .hlqs{font-size:13.5px;color:var(--muted);margin-top:9px;line-height:1.55}
+  .hlqe{color:#8a94a3}
+  .hlbtns{display:flex;gap:10px;margin-top:18px}
+  .hlbtns button{flex:1;padding:12px;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer;border:1px solid var(--line)}
+  .hlbtns .hlno{background:#fff;color:var(--muted)}
+  .hlbtns .hlyes{background:var(--red);color:#fff;border-color:var(--red)}
+  @media(max-width:640px){
+    .wrap{padding:0 12px 44px}
+    header{padding:13px 15px} header h1{font-size:20px} .logo{width:44px;height:44px;font-size:24px}
+    .stat .n{font-size:40px} .c-name{font-size:26px} .grid,.grid.soon{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">🏥</div>
+    <div>
+      <h1>보건실 재실 현황</h1>
+      <div class="sub">Sick Bay Occupancy · GLPS 44</div>
+    </div>
+    <div class="hmeta">
+      <span class="clock" id="clock">—</span>
+      <a class="hbtn solid" id="formBtn" target="_blank" rel="noopener">＋ 등록 Register</a>
+      <button class="hbtn" onclick="loadHealth()">↻ 새로고침</button>
+    </div>
+  </header>
+
+  <div class="hero" id="hero"></div>
+  <div id="errBox"></div>
+
+  <h2 class="sec">🟥 지금 재실 중 <span class="en">In Sick Bay Now</span><span class="c" id="nowCount"></span></h2>
+  <div class="grid" id="nowList"></div>
+
+  <h2 class="sec" id="soonSec" style="display:none">🕘 예정 <span class="en">Scheduled</span><span class="c" id="soonCount"></span></h2>
+  <div class="grid soon" id="soonList"></div>
+
+  <footer>재실 시간이 끝나면 자동으로 사라집니다 · Auto-updates every minute · GLPS 44 HQ</footer>
+</div>
+
+<script>
+/* ===== 설정 ===== */
+const CONFIG={
+  healthSheet:"https://docs.google.com/spreadsheets/d/1JoQZ5BFev-kC2Ko-nLeeHmYkxG1Q99d_FQpwqECWXmM/edit",
+  studentDbSheet:"https://docs.google.com/spreadsheets/d/1Pra5dOBvFfN5p-No7W5_h8ZxYuUR3McB/edit",
+  formHealth:"https://forms.gle/tutRBoPtygM6GcjNA"
+};
+/* 시간표: [KO, 시작분, 종료분, EN] */
+const HL_PERIODS=[
+  ["새벽",0,540,"Dawn"],["1교시",540,585,"1st period"],["2교시",600,645,"2nd period"],
+  ["3교시",660,705,"3rd period"],["4교시",720,765,"4th period"],["점심시간",765,870,"Lunch"],
+  ["5교시",870,915,"5th period"],["6교시",930,975,"6th period"],["7교시",975,1035,"7th period"],
+  ["Class PA Time",1035,1050,"Class PA Time"],["저녁시간",1050,1140,"Dinner"],
+  ["1자",1140,1260,"1st self-study"],["혼정",1260,1320,"Evening study (Honjeong)"],
+  ["2자",1320,1440,"2nd self-study"]];
+const HL_LOC_EN={"다산관":"Dasan Hall","덕고관":"Deokgo Hall"};
+const DOW=["일","월","화","수","목","금","토"];
+function rtKey(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function fmt(d){ return (d.getMonth()+1)+"/"+d.getDate()+"("+DOW[d.getDay()]+")"; }
+function locKey(s){ s=String(s||""); if(s.indexOf("다산")>=0) return "dasan"; if(s.indexOf("덕고")>=0) return "deokgo"; return ""; }
+
+/* ===== 공용 헬퍼 (메인 인트라넷과 동일) ===== */
+function parseCSV(text){
+  const rows=[]; let row=[], val="", q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){val+='"';i++;} else q=false; }
+      else val+=c;
+    } else {
+      if(c==='"') q=true;
+      else if(c===','){ row.push(val); val=""; }
+      else if(c==='\n'){ row.push(val); rows.push(row); row=[]; val=""; }
+      else if(c==='\r'){}
+      else val+=c;
+    }
+  }
+  if(val!==""||row.length){ row.push(val); rows.push(row); }
+  return rows;
+}
+function toObjects(rows){
+  if(!rows.length) return [];
+  const head=rows[0].map(h=>h.trim());
+  return rows.slice(1).filter(r=>r.some(x=>x&&x.trim())).map(r=>{
+    const o={}; head.forEach((h,i)=>o[h]=(r[i]||"").trim()); return o;
+  });
+}
+function esc(s){ return (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function isSet(v){ return v && v.trim() && !v.startsWith("PASTE"); }
+function parseSheet(u){ const id=(u.match(/\/d\/([a-zA-Z0-9-_]+)/)||[])[1]||""; const gid=(u.match(/[#?&]gid=([0-9]+)/)||[])[1]||""; return {id,gid}; }
+function stf(o,sub){ const k=Object.keys(o).find(k=>k.indexOf(sub)>=0); return k?String(o[k]==null?"":o[k]).trim():""; }
+function stHeaderRow(rows,anchor){ for(let i=0;i<Math.min(rows.length,8);i++){ if((rows[i]||[]).some(c=>String(c==null?"":c).indexOf(anchor)>=0)) return i; } return 0; }
+function stObjects(rows,anchor){ const h=stHeaderRow(rows,anchor); const head=(rows[h]||[]).map(x=>String(x==null?"":x).trim());
+  return rows.slice(h+1).filter(r=>r.some(x=>x&&String(x).trim())).map(r=>{ const o={}; head.forEach((k,i)=>{ if(k) o[k]=String(r[i]==null?"":r[i]).trim(); }); return o; }); }
+function clsNum(v){ return String(v==null?"":v).replace(/[^0-9]/g,""); }
+function clsLabel(c){ c=String(c==null?"":c).trim(); if(!c) return ""; return /반\s*$/.test(c)?c:c+"반"; }
+function hlDate(s){ s=String(s==null?"":s).trim(); if(!s) return null;
+  let m=s.match(/(\d{4})[.\-\/]\s*(\d{1,2})[.\-\/]\s*(\d{1,2})/); if(m) return new Date(+m[1],+m[2]-1,+m[3]);
+  m=s.match(/(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{2,4})/); if(!m) return null;
+  let a=+m[1],b=+m[2],y=+m[3]; if(y<100)y+=2000; let day,mon;
+  if(a>12){day=a;mon=b;} else if(b>12){day=b;mon=a;} else {day=a;mon=b;}
+  const dt=new Date(y,mon-1,day); return isNaN(dt.getTime())?null:dt; }
+function hlTs(s){ s=String(s==null?"":s).trim(); if(!s) return 0;
+  const pm=/오후|PM/i.test(s), am=/오전|AM/i.test(s); const n=s.match(/\d+/g); if(!n||n.length<3) return 0;
+  let y,mo,d,h=0,mi=0,se=0;
+  if(n[0].length===4){ y=+n[0];mo=+n[1];d=+n[2];h=+(n[3]||0);mi=+(n[4]||0);se=+(n[5]||0); }
+  else if(n[2]&&n[2].length===4){ mo=+n[0];d=+n[1];y=+n[2];h=+(n[3]||0);mi=+(n[4]||0);se=+(n[5]||0); }
+  else return 0;
+  if(pm&&h<12) h+=12; if(am&&h===12) h=0;
+  const dt=new Date(y,mo-1,d,h,mi,se); return isNaN(dt.getTime())?0:dt.getTime(); }
+
+async function fetchCsv(url){ const res=await fetch(url); if(!res.ok) throw new Error("HTTP "+res.status); return await res.text(); }
+
+/* ===== 학생 DB (영문명·반) ===== */
+let STU={}, STU_LOADED=false;
+function stCsv(name){ const p=parseSheet(CONFIG.studentDbSheet); return "https://docs.google.com/spreadsheets/d/"+p.id+"/gviz/tq?tqx=out:csv&sheet="+encodeURIComponent(name); }
+async function loadStudents(){
+  if(!isSet(CONFIG.studentDbSheet)) return;
+  try{
+    const[dbR,rrR]=await Promise.all([ fetchCsv(stCsv("DB")), fetchCsv(stCsv("이름_반_방")).catch(()=> "") ]);
+    const db=stObjects(parseCSV(dbR),"한글명");
+    const rr=rrR?stObjects(parseCSV(rrR),"한글명"):[];
+    const clsBy={};
+    rr.forEach(r=>{ const nm=stf(r,"한글명"); if(!nm||nm.indexOf("※")>=0) return; const c=stf(r,"반"); if(c) clsBy[nm]=c; });
+    const map={};
+    db.forEach(r=>{ const nm=stf(r,"한글명"); if(!nm||nm.indexOf("※")>=0) return;
+      map[nm]={ en:stf(r,"영문명"), cls:clsBy[nm]||stf(r,"반")||"" }; });
+    STU=map; STU_LOADED=true; render();
+  }catch(e){ /* DB 없어도 한국어는 표시 */ }
+}
+
+/* ===== 재실 시간 파싱 (시작·종료·한/영) ===== */
+function hlParse(per){
+  const toks=String(per==null?"":per).split(/[,\n]/).map(function(x){return x.trim();}).filter(Boolean);
+  if(toks.some(function(t){return t.indexOf("하루종일")>=0;})) return {ko:"하루종일",en:"All day",start:0,end:1440};
+  const idx=toks.map(function(t){return HL_PERIODS.findIndex(function(p){return p[0]===t;});}).filter(function(i){return i>=0;}).sort(function(a,b){return a-b;});
+  if(!idx.length){ const t=toks.join(", "); return {ko:t,en:t,start:0,end:1440}; }
+  const f=HL_PERIODS[idx[0]], l=HL_PERIODS[idx[idx.length-1]];
+  const start=Math.min.apply(null, idx.map(function(i){return HL_PERIODS[i][1];}));
+  const end=Math.max.apply(null, idx.map(function(i){return HL_PERIODS[i][2];}));
+  return { ko:(f===l?f[0]:f[0]+"~"+l[0]), en:(f===l?f[3]:f[3]+"–"+l[3]), start:start, end:end };
+}
+
+/* ===== 수동 퇴실 (localStorage · 기기 로컬) ===== */
+function coLoad(){ try{ return JSON.parse(localStorage.getItem("glps44_health_checkout")||"{}"); }catch(e){ return {}; } }
+function coSave(m){ const td=rtKey(new Date()), o={}; for(const k in m){ const dk=(k.split("|")[1]||""); if(!dk||dk>=td) o[k]=m[k]; } try{ localStorage.setItem("glps44_health_checkout",JSON.stringify(o)); }catch(e){} }
+function checkout(name,dateKey){
+  const ov=document.createElement("div"); ov.className="hlmodal";
+  ov.innerHTML='<div class="hlbox"><div class="hlq"><b>'+esc(name)+'</b> 학생을 <b>퇴실</b> 처리할까요?<div class="hlqs">예정 시간과 달리 나간 경우 · 퇴실이 맞으면 ‘예’를 눌러주세요.<br><span class="hlqe">Check this student out of the sick bay?</span></div></div><div class="hlbtns"><button type="button" class="hlno">아니오 No</button><button type="button" class="hlyes">예, 퇴실 Yes</button></div></div>';
+  document.body.appendChild(ov);
+  const close=function(){ ov.remove(); };
+  ov.addEventListener("click",function(e){ if(e.target===ov) close(); });
+  ov.querySelector(".hlno").onclick=close;
+  ov.querySelector(".hlyes").onclick=function(){ const m=coLoad(); m[name+"|"+dateKey]=Date.now(); coSave(m); close(); render(); };
+}
+
+/* ===== 데이터 로드 ===== */
+let HEALTH=[], HL_ERR="";
+async function loadHealth(){
+  const p=parseSheet(CONFIG.healthSheet);
+  try{
+    const csv=await fetchCsv("https://docs.google.com/spreadsheets/d/"+p.id+"/gviz/tq?tqx=out:csv");
+    HEALTH=toObjects(parseCSV(csv)).map(function(r){ return { nm:stf(r,"이름"), cls:stf(r,"반"), date:hlDate(stf(r,"날짜")),
+      loc:stf(r,"위치"), per:stf(r,"시간"), ts:hlTs(stf(r,"Timestamp")||stf(r,"타임")) }; }).filter(function(x){ return x.nm; });
+    HL_ERR="";
+  }catch(e){ HL_ERR=e.message; }
+  if(!STU_LOADED) loadStudents();
+  render();
+}
+
+/* ===== 렌더 ===== */
+function build(){
+  const now=new Date(), todayKey=rtKey(now), nowMin=now.getHours()*60+now.getMinutes(), CO=coLoad();
+  const latest=new Map();
+  HEALTH.forEach(function(h){ if(!h.date) return; const dk=rtKey(h.date); if(dk<todayKey) return;
+    const key=h.nm+"|"+dk;
+    if((h.per||"").indexOf("퇴실")>=0){ latest.delete(key); return; }
+    const prev=latest.get(key); if(prev && (prev.ts||0) > (h.ts||0)) return;
+    latest.set(key,h); });
+  const nowL=[], soonL=[];
+  latest.forEach(function(h,key){ const dk=rtKey(h.date), info=hlParse(h.per);
+    if(dk===todayKey && info.end<=nowMin) return;             /* 자동 퇴실 */
+    const co=CO[key]; if(co && co>=(h.ts||0)) return;         /* 수동 퇴실 */
+    h._info=info; h._key=key;
+    if(dk===todayKey && nowMin>=info.start) nowL.push(h); else soonL.push(h);
+  });
+  const clsN=function(h){ const c=h.cls||(STU[h.nm]&&STU[h.nm].cls)||""; const n=clsNum(c); return n?+n:999; };
+  const srt=function(a,b){ return rtKey(a.date).localeCompare(rtKey(b.date))||clsN(a)-clsN(b)||a.nm.localeCompare(b.nm,"ko"); };
+  nowL.sort(srt); soonL.sort(srt);
+  return {nowL,soonL,todayKey};
+}
+function card(h,soon){
+  const st=STU[h.nm]||{}, cls=h.cls||st.cls||"", cn=clsNum(cls), info=h._info,
+    en=st.en||"", lk=locKey(h.loc), locEN=HL_LOC_EN[h.loc]||h.loc||"", dk=rtKey(h.date), today=dk===rtKey(new Date());
+  const clsChip=cls?'<span class="c-cls">'+esc(clsLabel(cls))+'</span>':'';
+  const dateChip=(soon&&!today)?'<span class="c-date">'+esc(fmt(h.date))+'</span> ':'';
+  const locChip=h.loc?'<span class="c-loc '+lk+'">'+esc(h.loc)+'</span>':'';
+  const enLine=(en?esc(en)+' · ':'')+'Class '+(cn||"—")+(locEN?' · '+esc(locEN):'');
+  const out=today?'<button class="c-out" type="button" data-nm="'+esc(h.nm)+'" data-dk="'+esc(dk)+'">퇴실 Out</button>':'';
+  return '<div class="card '+lk+(soon?' soon':'')+'">'
+    +'<div class="c-top">'+dateChip+'<span class="c-name">'+esc(h.nm)+'</span>'+clsChip+locChip+'</div>'
+    +'<div class="c-en">'+enLine+'</div>'
+    +'<div class="c-time"><span class="ko">🕒 '+esc(info.ko)+'</span><span class="en">'+esc(info.en)+'</span></div>'
+    +(out?'<div class="c-foot">'+out+'</div>':'')
+    +'</div>';
+}
+function render(){
+  const {nowL,soonL}=build();
+  const dasan=nowL.filter(function(h){return locKey(h.loc)==="dasan";}).length;
+  const deokgo=nowL.filter(function(h){return locKey(h.loc)==="deokgo";}).length;
+  document.getElementById("hero").innerHTML=
+    '<div class="stat now"><div class="l">지금 재실 중</div><div class="n">'+nowL.length+'<span style="font-size:22px;font-weight:700"> 명</span></div><div class="en">In sick bay now</div></div>'
+    +'<div class="stat dasan"><div class="l">다산관 Dasan</div><div class="n">'+dasan+'</div></div>'
+    +'<div class="stat deokgo"><div class="l">덕고관 Deokgo</div><div class="n">'+deokgo+'</div></div>';
+  const errBox=document.getElementById("errBox");
+  errBox.innerHTML=HL_ERR?'<div class="err">데이터를 불러오지 못했어요 ('+esc(HL_ERR)+'). 시트 공유 상태를 확인하세요.</div>':"";
+  document.getElementById("nowCount").textContent=nowL.length?nowL.length+"명":"";
+  const nl=document.getElementById("nowList");
+  nl.innerHTML=nowL.length?nowL.map(function(h){return card(h,false);}).join("")
+    :'<div class="empty"><div class="big">현재 보건실에 학생이 없습니다</div><div class="en">No students currently in the sick bay</div></div>';
+  const hasSoon=soonL.length>0;
+  document.getElementById("soonSec").style.display=hasSoon?"":"none";
+  document.getElementById("soonCount").textContent=hasSoon?soonL.length+"건":"";
+  document.getElementById("soonList").innerHTML=hasSoon?soonL.map(function(h){return card(h,true);}).join(""):"";
+  document.querySelectorAll(".c-out").forEach(function(b){ b.onclick=function(){ checkout(b.dataset.nm,b.dataset.dk); }; });
+}
+
+/* ===== 시계 & 부팅 ===== */
+function clock(){ const n=new Date(); document.getElementById("clock").textContent="📅 "+fmt(n)+" "+n.toTimeString().slice(0,5); }
+(function boot(){
+  const fb=document.getElementById("formBtn");
+  if(isSet(CONFIG.formHealth)) fb.href=CONFIG.formHealth; else fb.style.display="none";
+  clock(); setInterval(clock,1000);
+  loadHealth();
+  setInterval(loadHealth,60000);   /* 1분마다 새 데이터 */
+  setInterval(render,15000);        /* 15초마다 시간 기준 재계산(자동 퇴실) */
+})();
+</script>
+</body>
+</html>
