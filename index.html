@@ -38,21 +38,17 @@
   /* card */
   .card{background:var(--card);border:1px solid var(--line);border-left:7px solid var(--muted);border-radius:14px;padding:16px 18px}
   .card.dasan{border-left-color:var(--dasan)} .card.deokgo{border-left-color:var(--deokgo)}
-  .c-top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-  .c-name{font-size:30px;font-weight:800;letter-spacing:-.5px}
-  .c-cls{font-size:17px;font-weight:800;color:var(--blue);background:#eaf2fb;border-radius:9px;padding:2px 11px}
+  .c-datewrap{margin-bottom:9px}
+  .c-date{font-size:14px;font-weight:800;color:var(--navy);background:#eef1f7;border-radius:8px;padding:3px 11px}
+  .c-line{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap}
+  .c-line + .c-line{margin-top:10px;padding-top:10px;border-top:0.5px solid var(--line)}
+  .c-name{font-size:24px;font-weight:800;letter-spacing:-.4px}
+  .c-cls{font-size:16px;font-weight:800;color:var(--blue);background:#eaf2fb;border-radius:9px;padding:2px 11px}
+  .c-time{font-size:17px;font-weight:800;color:var(--red)}
   .c-loc{margin-left:auto;font-size:16px;font-weight:800;padding:4px 13px;border-radius:10px;white-space:nowrap}
   .c-loc.dasan{background:#e7f0fb;color:var(--dasan)} .c-loc.deokgo{background:#f6ecdd;color:var(--deokgo)}
-  .c-en{font-size:15px;color:var(--muted);margin-top:5px}
-  .c-time{margin-top:10px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-  .c-time .ko{font-size:19px;font-weight:800;color:var(--red)}
-  .c-time .en{font-size:14px;color:var(--muted)}
-  .c-foot{display:flex;align-items:center;margin-top:12px}
-  .c-out{margin-left:auto;font-size:14px;font-weight:700;border:1.5px solid #e0b3b3;background:#fff;color:var(--red);border-radius:10px;padding:7px 16px;cursor:pointer}
-  .c-out:hover{background:var(--redbg)}
-  .card.soon{border-left-width:5px;padding:13px 15px;opacity:.96}
-  .card.soon .c-name{font-size:23px} .card.soon .c-cls{font-size:14px}
-  .card.soon .c-date{font-size:13px;font-weight:800;color:var(--navy);background:#eef1f7;border-radius:8px;padding:2px 9px}
+  .card.soon{border-left-width:5px;padding:13px 15px}
+  .card.soon .c-name{font-size:20px} .card.soon .c-cls,.card.soon .c-time,.card.soon .c-loc{font-size:15px}
   .empty{background:var(--card);border:1px dashed #cdd4df;border-radius:16px;padding:46px 20px;text-align:center;color:var(--muted)}
   .empty .big{font-size:26px;font-weight:800;color:var(--ink)}
   .empty .en{font-size:15px;margin-top:6px}
@@ -205,18 +201,6 @@ function hlParse(per){
   return { ko:(f===l?f[0]:f[0]+"~"+l[0]), en:(f===l?f[3]:f[3]+"–"+l[3]), start:start, end:end };
 }
 
-/* ===== 수동 퇴실 (localStorage · 기기 로컬) ===== */
-function coLoad(){ try{ return JSON.parse(localStorage.getItem("glps44_health_checkout")||"{}"); }catch(e){ return {}; } }
-function coSave(m){ const td=rtKey(new Date()), o={}; for(const k in m){ const dk=(k.split("|")[1]||""); if(!dk||dk>=td) o[k]=m[k]; } try{ localStorage.setItem("glps44_health_checkout",JSON.stringify(o)); }catch(e){} }
-function checkout(name,dateKey){
-  const ov=document.createElement("div"); ov.className="hlmodal";
-  ov.innerHTML='<div class="hlbox"><div class="hlq"><b>'+esc(name)+'</b> 학생을 <b>퇴실</b> 처리할까요?<div class="hlqs">예정 시간과 달리 나간 경우 · 퇴실이 맞으면 ‘예’를 눌러주세요.<br><span class="hlqe">Check this student out of the sick bay?</span></div></div><div class="hlbtns"><button type="button" class="hlno">아니오 No</button><button type="button" class="hlyes">예, 퇴실 Yes</button></div></div>';
-  document.body.appendChild(ov);
-  const close=function(){ ov.remove(); };
-  ov.addEventListener("click",function(e){ if(e.target===ov) close(); });
-  ov.querySelector(".hlno").onclick=close;
-  ov.querySelector(".hlyes").onclick=function(){ const m=coLoad(); m[name+"|"+dateKey]=Date.now(); coSave(m); close(); render(); };
-}
 
 /* ===== 데이터 로드 ===== */
 let HEALTH=[], HL_ERR="";
@@ -234,7 +218,7 @@ async function loadHealth(){
 
 /* ===== 렌더 ===== */
 function build(){
-  const now=new Date(), todayKey=rtKey(now), nowMin=now.getHours()*60+now.getMinutes(), CO=coLoad();
+  const now=new Date(), todayKey=rtKey(now), nowMin=now.getHours()*60+now.getMinutes();
   const latest=new Map();
   HEALTH.forEach(function(h){ if(!h.date) return; const dk=rtKey(h.date); if(dk<todayKey) return;
     const key=h.nm+"|"+dk;
@@ -244,7 +228,6 @@ function build(){
   const nowL=[], soonL=[];
   latest.forEach(function(h,key){ const dk=rtKey(h.date), info=hlParse(h.per);
     if(dk===todayKey && info.end<=nowMin) return;             /* 자동 퇴실 */
-    const co=CO[key]; if(co && co>=(h.ts||0)) return;         /* 수동 퇴실 */
     h._info=info; h._key=key;
     if(dk===todayKey && nowMin>=info.start) nowL.push(h); else soonL.push(h);
   });
@@ -255,17 +238,16 @@ function build(){
 }
 function card(h,soon){
   const st=STU[h.nm]||{}, cls=h.cls||st.cls||"", cn=clsNum(cls), info=h._info,
-    en=st.en||"", lk=locKey(h.loc), locEN=HL_LOC_EN[h.loc]||h.loc||"", dk=rtKey(h.date), today=dk===rtKey(new Date());
-  const clsChip=cls?'<span class="c-cls">'+esc(clsLabel(cls))+'</span>':'';
-  const dateChip=(soon&&!today)?'<span class="c-date">'+esc(fmt(h.date))+'</span> ':'';
-  const locChip=h.loc?'<span class="c-loc '+lk+'">'+esc(h.loc)+'</span>':'';
-  const enLine=(en?esc(en)+' · ':'')+'Class '+(cn||"—")+(locEN?' · '+esc(locEN):'');
-  const out=today?'<button class="c-out" type="button" data-nm="'+esc(h.nm)+'" data-dk="'+esc(dk)+'">퇴실 Out</button>':'';
+    en=st.en||h.nm, lk=locKey(h.loc), locEN=HL_LOC_EN[h.loc]||h.loc||"";
+  const koCls=cls?'<span class="c-cls">'+esc(clsLabel(cls))+'</span>':'';
+  const enCls='<span class="c-cls">Class '+(cn||"—")+'</span>';
+  const koLoc=h.loc?'<span class="c-loc '+lk+'">'+esc(h.loc)+'</span>':'';
+  const enLoc=locEN?'<span class="c-loc '+lk+'">'+esc(locEN)+'</span>':'';
+  const dateWrap=soon?'<div class="c-datewrap"><span class="c-date">'+esc(fmt(h.date))+'</span></div>':'';
   return '<div class="card '+lk+(soon?' soon':'')+'">'
-    +'<div class="c-top">'+dateChip+'<span class="c-name">'+esc(h.nm)+'</span>'+clsChip+locChip+'</div>'
-    +'<div class="c-en">'+enLine+'</div>'
-    +'<div class="c-time"><span class="ko">🕒 '+esc(info.ko)+'</span><span class="en">'+esc(info.en)+'</span></div>'
-    +(out?'<div class="c-foot">'+out+'</div>':'')
+    +dateWrap
+    +'<div class="c-line"><span class="c-name">'+esc(h.nm)+'</span>'+koCls+'<span class="c-time">🕒 '+esc(info.ko)+'</span>'+koLoc+'</div>'
+    +'<div class="c-line"><span class="c-name">'+esc(en)+'</span>'+enCls+'<span class="c-time">🕒 '+esc(info.en)+'</span>'+enLoc+'</div>'
     +'</div>';
 }
 function render(){
@@ -286,7 +268,6 @@ function render(){
   document.getElementById("soonSec").style.display=hasSoon?"":"none";
   document.getElementById("soonCount").textContent=hasSoon?soonL.length+"건":"";
   document.getElementById("soonList").innerHTML=hasSoon?soonL.map(function(h){return card(h,true);}).join(""):"";
-  document.querySelectorAll(".c-out").forEach(function(b){ b.onclick=function(){ checkout(b.dataset.nm,b.dataset.dk); }; });
 }
 
 /* ===== 시계 & 부팅 ===== */
