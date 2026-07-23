@@ -6,7 +6,7 @@
 <title>보건실 재실 현황 · Sick Bay Status · GLPS 44</title>
 <style>
   :root{--navy:#1F3864;--blue:#2E75B6;--ink:#1f2733;--muted:#6b7480;--line:#e3e7ee;--bg:#f4f6fa;--card:#fff;
-    --red:#a32d2d;--redbg:#fcecec;--green:#2f7d31;--greenbg:#e9f6ea;--dasan:#2E75B6;--deokgo:#8a5a1b}
+    --red:#a32d2d;--redbg:#fcecec;--green:#2f7d31;--greenbg:#e9f6ea;--dasan:#2E75B6;--deokgo:#8a5a1b;--oejin:#2f7d5a}
   *{box-sizing:border-box}
   html,body{margin:0}
   body{background:var(--bg);color:var(--ink);font-family:'Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',-apple-system,'Segoe UI',sans-serif;line-height:1.4;word-break:keep-all}
@@ -28,7 +28,7 @@
   .stat.now{background:var(--redbg);border-color:#f2cccc} .stat.now .n{color:var(--red)}
   .stat.now .l{color:var(--red)}
   .stat .en{font-size:13px;color:var(--muted);margin-top:2px}
-  .stat.dasan .n{color:var(--dasan)} .stat.deokgo .n{color:var(--deokgo)}
+  .stat.dasan .n{color:var(--dasan)} .stat.deokgo .n{color:var(--deokgo)} .stat.oejin .n{color:var(--oejin)}
   /* sections */
   h2.sec{font-size:20px;color:var(--navy);font-weight:800;margin:30px 0 14px;display:flex;align-items:center;gap:10px}
   h2.sec .en{font-size:14px;font-weight:500;color:var(--muted)}
@@ -37,7 +37,7 @@
   .grid.soon{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
   /* card */
   .card{background:var(--card);border:1px solid var(--line);border-left:7px solid var(--muted);border-radius:14px;padding:16px 18px}
-  .card.dasan{border-left-color:var(--dasan)} .card.deokgo{border-left-color:var(--deokgo)}
+  .card.dasan{border-left-color:var(--dasan)} .card.deokgo{border-left-color:var(--deokgo)} .card.oejin{border-left-color:var(--oejin)}
   .c-datewrap{margin-bottom:9px}
   .c-date{font-size:14px;font-weight:800;color:var(--navy);background:#eef1f7;border-radius:8px;padding:3px 11px}
   .c-line{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap}
@@ -46,7 +46,7 @@
   .c-cls{font-size:16px;font-weight:800;color:var(--blue);background:#eaf2fb;border-radius:9px;padding:2px 11px}
   .c-time{font-size:17px;font-weight:800;color:var(--red)}
   .c-loc{margin-left:auto;font-size:16px;font-weight:800;padding:4px 13px;border-radius:10px;white-space:nowrap}
-  .c-loc.dasan{background:#e7f0fb;color:var(--dasan)} .c-loc.deokgo{background:#f6ecdd;color:var(--deokgo)}
+  .c-loc.dasan{background:#e7f0fb;color:var(--dasan)} .c-loc.deokgo{background:#f6ecdd;color:var(--deokgo)} .c-loc.oejin{background:#e6f4ee;color:var(--oejin)}
   .card.soon{border-left-width:5px;padding:13px 15px}
   .card.soon .c-name{font-size:20px} .card.soon .c-cls,.card.soon .c-time,.card.soon .c-loc{font-size:15px}
   .empty{background:var(--card);border:1px dashed #cdd4df;border-radius:16px;padding:46px 20px;text-align:center;color:var(--muted)}
@@ -113,11 +113,11 @@ const HL_PERIODS=[
   ["Class PA Time",1035,1050,"Class PA Time"],["저녁시간",1050,1140,"Dinner"],
   ["1자",1140,1260,"1st self-study"],["혼정",1260,1320,"Evening study (Honjeong)"],
   ["2자",1320,1440,"2nd self-study"]];
-const HL_LOC_EN={"다산관":"Dasan Hall","덕고관":"Deokgo Hall"};
+const HL_LOC_EN={"다산관":"Dasan Hall","덕고관":"Deokgo Hall","외진":"Off-site clinic","외진료":"Off-site clinic"};
 const DOW=["일","월","화","수","목","금","토"];
 function rtKey(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function fmt(d){ return (d.getMonth()+1)+"/"+d.getDate()+"("+DOW[d.getDay()]+")"; }
-function locKey(s){ s=String(s||""); if(s.indexOf("다산")>=0) return "dasan"; if(s.indexOf("덕고")>=0) return "deokgo"; return ""; }
+function locKey(s){ s=String(s||""); if(s.indexOf("다산")>=0) return "dasan"; if(s.indexOf("덕고")>=0) return "deokgo"; if(s.indexOf("외진")>=0) return "oejin"; return ""; }
 
 /* ===== 공용 헬퍼 (메인 인트라넷과 동일) ===== */
 function parseCSV(text){
@@ -254,10 +254,12 @@ function render(){
   const {nowL,soonL}=build();
   const dasan=nowL.filter(function(h){return locKey(h.loc)==="dasan";}).length;
   const deokgo=nowL.filter(function(h){return locKey(h.loc)==="deokgo";}).length;
+  const oejin=nowL.filter(function(h){return locKey(h.loc)==="oejin";}).length;
   document.getElementById("hero").innerHTML=
     '<div class="stat now"><div class="l">지금 재실 중</div><div class="n">'+nowL.length+'<span style="font-size:22px;font-weight:700"> 명</span></div><div class="en">In sick bay now</div></div>'
     +'<div class="stat dasan"><div class="l">다산관 Dasan</div><div class="n">'+dasan+'</div></div>'
-    +'<div class="stat deokgo"><div class="l">덕고관 Deokgo</div><div class="n">'+deokgo+'</div></div>';
+    +'<div class="stat deokgo"><div class="l">덕고관 Deokgo</div><div class="n">'+deokgo+'</div></div>'
+    +'<div class="stat oejin"><div class="l">외진 Off-site</div><div class="n">'+oejin+'</div></div>';
   const errBox=document.getElementById("errBox");
   errBox.innerHTML=HL_ERR?'<div class="err">데이터를 불러오지 못했어요 ('+esc(HL_ERR)+'). 시트 공유 상태를 확인하세요.</div>':"";
   document.getElementById("nowCount").textContent=nowL.length?nowL.length+"명":"";
